@@ -1,0 +1,17 @@
+{
+  "name": "gesturerecogniser",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "start": "node server.js",
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "websocket": "^1.0.31",
+    "stjs": "^0.0.5",
+    "three": "^0.113.2"
+  }
+}
