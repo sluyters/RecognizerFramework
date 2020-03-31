@@ -1,4 +1,5 @@
-var THREE = require('three');
+const AbstractRecognizer = require('../framework/recognizer').AbstractRecognizer;
+const THREE = require('three');
 
 const pauseDuration = 250; // Duration of pause between 2 gestures [ms]
 const duplicatePauseDuration = 650; // Duration of pause between 2 opposite gestures [ms]
@@ -14,10 +15,11 @@ const oppositeGestures = {
     'rindex-airtap': [],
 }
 
+class Recognizer extends AbstractRecognizer {
 
-class Recogniser {
+    constructor(trainingSet) {
+        super("Programmatic Recognizer");
 
-    constructor() {
         this.frameCacheSize = 10;
         this.lastGesture = "";
         this.rightHand = "";
@@ -29,8 +31,11 @@ class Recogniser {
         this.previousTime = date.getTime();
     }
 
-    analyseFrame(frame, context) {
+    addGesture(template) {
+        throw new Error('You have to implement this function');
+    }
 
+    recognize(frame) {
         // Get necessary data from frame 
         this.rightHand = "";
         this.leftHand = "";
@@ -56,7 +61,7 @@ class Recogniser {
         this.previousFrames.push(frameData);
         if (this.previousFrames.length < this.frameCacheSize) {
             this.previousTime = getTimeStamp();
-            return [false, ''];
+            return { success: false, name: "", time: 0.0 };
         }
 
         // Avoid detecting gestures twice
@@ -65,7 +70,7 @@ class Recogniser {
             this.pause -= now - this.previousTime;
             this.duplicatePause -= now - this.previousTime;
             this.previousTime = getTimeStamp();
-            return [false, ''];
+            return { success: false, name: "", time: 0.0 };
         }
 
         if (this.rightHand) {
@@ -78,46 +83,54 @@ class Recogniser {
             } else if (this.rightHand.palmVelocity[1] < -400) {
                 return this.getGesture('rhand-dswipe');
             } else if (this.previousFrames[2].rightHand !== "") {
-                let previousRoll = computeEulerAngles(this.previousFrames[2].rightHand)[2];
-                let roll = computeEulerAngles(this.rightHand)[2];
-                let rotation = ((roll - previousRoll) * 180) / 3.14;
+                //let previousRoll = computeEulerAngles(this.previousFrames[2].rightHand)[2];
+                //let roll = computeEulerAngles(this.rightHand)[2];
+                //let rotation = ((roll - previousRoll) * 180) / 3.14;
                 if (this.previousFrames[2].rightHand.pinchStrength > 0.8 && this.rightHand.pinchStrength < 0.1) {
                     return this.getGesture('rhand-open');
                 } else if (this.previousFrames[2].rightHand.pinchStrength < 0.1 && this.rightHand.pinchStrength > 0.8) {
                     return this.getGesture('rhand-close');
-                } else if (rotation > 20) {
-                    return this.getGesture('rhand-crotate');
-                } else if (rotation < -20) {
-                    return this.getGesture('rhand-acrotate');
                 }
+                // } else if (rotation > 20) {
+                //     return this.getGesture('rhand-crotate');
+                // } else if (rotation < -20) {
+                //     return this.getGesture('rhand-acrotate');
+                // }
             }
             if (this.rightIndexFinger && this.rightIndexFinger.tipVelocity[2] < -610) {
                 return this.getGesture('rindex-airtap');
             } 
         }
         this.previousTime = getTimeStamp();
-        return [false, {}];
+        return { success: false, name: "", time: 0.0 };
     }
 
+    getName() {
+        return this.name;
+    }
+
+    // Helper method
     getGesture(gesture) {
         this.previousTime = getTimeStamp();
 
         // Avoid detecting gestures twice
         if (this.pause > 0) {
-            return [false, ''];
+            return { success: false, name: "", time: 0.0 };
         }
 
         if (this.duplicatePause > 0 && this.lastGesture && oppositeGestures[this.lastGesture].includes(gesture)) {
-            return [false, ''];
+            return { success: false, name: "", time: 0.0 };
         }
 
         this.pause = pauseDuration;
         this.duplicatePause = duplicatePauseDuration;
         this.lastGesture = gesture;
-        return [true, gesture];
+        return { success: true, name: gesture, time: 0.0 };
     }
+
 }
 
+// Helper functions
 function computeEulerAngles(hand) {
     var r = [];
     for (var i = 0; i < 4; i++) {
@@ -156,5 +169,5 @@ function getFrameCache(size) {
 }
 
 module.exports = {
-    Recogniser
+    Recognizer
 };

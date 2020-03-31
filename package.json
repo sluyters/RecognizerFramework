@@ -1,17 +1,17 @@
 {
-  "name": "gesturerecogniser",
+  "name": "gesture-framework",
   "version": "1.0.0",
   "description": "",
   "main": "index.js",
   "scripts": {
-    "start": "node server.js",
+    "start": "node index.js",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "author": "",
   "license": "ISC",
   "dependencies": {
-    "websocket": "^1.0.31",
-    "stjs": "^0.0.5",
-    "three": "^0.113.2"
+    "ws": "7.2.3",
+    "three": "^0.113.2",
+    "leapjs": "0.6.4"
   }
 }
