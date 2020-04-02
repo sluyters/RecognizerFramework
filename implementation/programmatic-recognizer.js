@@ -86,9 +86,9 @@ class Recognizer extends AbstractRecognizer {
                 //let previousRoll = computeEulerAngles(this.previousFrames[2].rightHand)[2];
                 //let roll = computeEulerAngles(this.rightHand)[2];
                 //let rotation = ((roll - previousRoll) * 180) / 3.14;
-                if (this.previousFrames[2].rightHand.pinchStrength > 0.8 && this.rightHand.pinchStrength < 0.1) {
+                if (this.previousFrames[2].rightHand.pinchStrength > 0.7 && this.rightHand.pinchStrength < 0.2) {
                     return this.getGesture('rhand-open');
-                } else if (this.previousFrames[2].rightHand.pinchStrength < 0.1 && this.rightHand.pinchStrength > 0.8) {
+                } else if (this.previousFrames[2].rightHand.pinchStrength < 0.2 && this.rightHand.pinchStrength > 0.7) {
                     return this.getGesture('rhand-close');
                 }
                 // } else if (rotation > 20) {
@@ -97,7 +97,7 @@ class Recognizer extends AbstractRecognizer {
                 //     return this.getGesture('rhand-acrotate');
                 // }
             }
-            if (this.rightIndexFinger && this.rightIndexFinger.tipVelocity[2] < -610) {
+            if (this.rightIndexFinger && this.rightIndexFinger.tipVelocity[2] < -610 && this.rightHand.palmVelocity[2] < -400) {
                 return this.getGesture('rindex-airtap');
             } 
         }

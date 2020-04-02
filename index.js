@@ -33,8 +33,8 @@ wsServer.on('connection', function connection(ws) {
     // Process sensor frames
     sensorIF.loop((frame) => {
         if (true) {
+            var hasRightHand = false
             for (const hand of frame.hands) {
-                var hasRightHand = false
                 if (hand.type === "right") {
                     hasRightHand = true;
                     hadRightHand = true;

@@ -14,7 +14,6 @@ class GestureHandler {
 
         this.client.onmessage = function(event) {
             let data = JSON.parse(event.data);
-            console.log(data);
             if (data.hasOwnProperty('gesture')) {
                 if (this.handlers.hasOwnProperty(data.gesture)) {
                     this.handlers[data.gesture]();
