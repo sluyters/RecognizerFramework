@@ -11,8 +11,7 @@ class SensorIF extends AbstractSensorIF {
         }.bind(this));
     }
 
-    // TODO add options ?
-    loop(callback) {
+    loop(callback, options = {}) {
         this.controller.connect()
         this.callback = callback;
     }
