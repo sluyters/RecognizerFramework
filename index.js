@@ -17,9 +17,11 @@ var sensorIF = new SensorIF();
 
 var wsServer = getWebSocketServer(APP_INTERFACE_IP, APP_INTERFACE_PORT);
 var x = 0;
-wsServer.on('connection', function connection(ws) {
+wsServer.on('connection', async function connection(ws) {
     console.log("Connected!");
 
+    await new Promise(resolve => setTimeout(resolve, 100));
+    
     // Set callback
     ws.on('message', function incoming(message) {
         var data = JSON.parse(message.utf8Data);
