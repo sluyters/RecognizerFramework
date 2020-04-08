@@ -1,4 +1,4 @@
-const AbstractRecognizer = require('../framework/recognizer').AbstractRecognizer;
+const AbstractRecognizer = require('../../framework/recognizer').AbstractRecognizer;
 const THREE = require('three');
 
 const pauseDuration = 250; // Duration of pause between 2 gestures [ms]
@@ -35,8 +35,9 @@ class Recognizer extends AbstractRecognizer {
         throw new Error('You have to implement this function');
     }
 
-    recognize(frame) {
+    recognize(frames) {
         // Get necessary data from frame 
+        let frame = frames[0];
         this.rightHand = "";
         this.leftHand = "";
         for (const hand of frame.hands) {

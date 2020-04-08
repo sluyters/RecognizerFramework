@@ -1,4 +1,4 @@
-const AbstractRecognizer = require('../framework/recognizer').AbstractRecognizer;
+const AbstractRecognizer = require('../../framework/recognizer').AbstractRecognizer;
 
 /**
  * The $P+ Point-Cloud Recognizer (JavaScript version)
@@ -82,20 +82,29 @@ const Origin = new Point(0, 0, 0, 0);
 //
 class Recognizer extends AbstractRecognizer {
 
-	static name = "P3DollarPlusXRecognizer";
-
-    constructor(N) {
+    constructor(templates) {
 		super();
-		NumPoints = N;
 		this.PointClouds = new Array();
 		this.conflicts = {};
+
+		// Load templates
+		Object.keys(templates).forEach((name) => {
+			templates[name].forEach((template) => {
+				this.addGesture(name, template.data);
+			});
+		});
 	}
 	
 	//
 	// The $P+ Point-Cloud Recognizer API begins here -- 3 methods: Recognize(), AddGesture(), DeleteUserGestures()
 	//
-	recognize(sample) {
-		let points = convert(sample);
+	recognize(frames) {
+		let points = convert(frames);
+		if (points.length < 2) {
+			//return { 'Name': 'No match', 'Time': 0.0, 'Score': 0.0 };
+			return { success: false, name: "", time: 0.0 };
+		}
+
 		let t0 = Date.now();
 		var candidate = new PointCloud("", points);
 
@@ -108,7 +117,8 @@ class Recognizer extends AbstractRecognizer {
 		}
 
 		let t1 = Date.now();
-		return (u == -1) ? { 'Name': 'No match', 'Time': t1-t0, 'Score': 0.0 } : { 'Name': this.PointClouds[u].Name, 'Time': t1-t0, 'Score': b > 1.0 ? 1.0 / b : 1.0 };
+		//return (u == -1) ? { 'Name': 'No match', 'Time': t1-t0, 'Score': 0.0 } : { 'Name': this.PointClouds[u].Name, 'Time': t1-t0, 'Score': b > 1.0 ? 1.0 / b : 1.0 };
+		return (u == -1) ? { success: false, name: "", time: t1-t0 } :  { success: true, name: this.PointClouds[u].Name, time: t1-t0 };
 	}
 
 	addGesture(name, sample) {
@@ -152,13 +162,26 @@ class Recognizer extends AbstractRecognizer {
 	}
 }
 
-function convert(sample) {
+function convert(frames) {
     let points = [];
-    sample.strokes.forEach((stroke, stroke_id) => {
-       stroke.points.forEach((point) => {
-           points.push(new Point(point.x, point.y, point.z, stroke_id));
-       });
-	});
+    // sample.strokes.forEach((stroke, stroke_id) => {
+    //    stroke.points.forEach((point) => {
+    //        points.push(new Point(point.x, point.y, point.z, stroke_id));
+    //    });
+	// });
+
+	for (const frame of frames) {
+		for (const hand of frame.hands) {
+			if (hand.type === "right") {
+				let palmPosition = hand['palmPosition']
+				let x = palmPosition[0];
+				let y = palmPosition[1];
+				let z = palmPosition[2];
+				points.push(new Point(x, y, z, 0));
+			}
+		}
+	}
+	console.log(points)
     return points;
 }
 

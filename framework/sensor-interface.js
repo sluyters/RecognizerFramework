@@ -7,7 +7,7 @@ class AbstractSensorIF {
     /**
      * Process one frame from the sensor.
      * @callback frameCallback
-     * @param {Object} frame - The frame to process
+     * @param {Object} frame - The frame to process.
      */
 
     /**

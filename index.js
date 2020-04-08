@@ -1,17 +1,23 @@
-const Recognizer = require('./implementation/programmatic-recognizer').Recognizer;
-const SensorIF = require('./implementation/leap-interface').SensorIF;
+//const Recognizer = require('./implementation/gesture-recognizer/programmatic-recognizer').Recognizer;
+const Recognizer = require('./implementation/gesture-recognizer/P3DollarPlusXRecognizer').Recognizer;
+const SensorIF = require('./implementation/sensor-interface/leap-interface').SensorIF;
 const DataLoader = require('./implementation/leap-dataloader');
+const GestureSegmenter = require('./implementation/gesture-segmenter/lefthand-segmenter').Segmenter
+//const GestureSegmenter = require('./implementation/gesture-segmenter/frame-segmenter').Segmenter;
 //const DataParser = require('./implementation/leap-dataparser');
 const WebSocket = require('ws');
 const http = require('http');
+const path = require('path');
 
 // Port and ip of the websocket server
 const APP_INTERFACE_IP = '127.0.0.1';
 const APP_INTERFACE_PORT = 6442;
 
 // Load the training set and feed it to the recognizer
-var trainingSet = DataLoader.load();
+const trainingSetPath = path.join(__dirname, "implementation", "training-dataset");
+var trainingSet = DataLoader.load(trainingSetPath);
 var recognizer = new Recognizer(trainingSet);
+var gestureSegmenter = new GestureSegmenter();
 
 var sensorIF = new SensorIF();
 
@@ -31,40 +37,43 @@ wsServer.on('connection', async function connection(ws) {
     });
 
     var hadRightHand = false;
-    var send = true;
+
     // Process sensor frames
     sensorIF.loop((frame) => {
-        if (true) {
-            var hasRightHand = false
-            for (const hand of frame.hands) {
-                if (hand.type === "right") {
-                    hasRightHand = true;
-                    hadRightHand = true;
-                    var fingers = [];
-                    hand.fingers.forEach((pointable) => {
-                        const position = pointable.stabilizedTipPosition;
-                        const normalized = frame.interactionBox.normalizePoint(position);
-                        fingers.push({ 
-                            'type': pointable.type, 
-                            'normalizedPosition': normalized, 
-                            'touchDistance': pointable.touchDistance, 
-                            'tipVelocity': pointable.tipVelocity 
-                        });
+
+        // TODO - move to another module
+        // Send right hand fingers to the app 
+        var hasRightHand = false;
+        for (const hand of frame.hands) {
+            if (hand.type === "right") {
+                hasRightHand = true;
+                hadRightHand = true;
+                var fingers = [];
+                hand.fingers.forEach((pointable) => {
+                    const position = pointable.stabilizedTipPosition;
+                    const normalized = frame.interactionBox.normalizePoint(position);
+                    fingers.push({ 
+                        'type': pointable.type, 
+                        'normalizedPosition': normalized, 
+                        'touchDistance': pointable.touchDistance, 
+                        'tipVelocity': pointable.tipVelocity 
                     });
-                    ws.send(JSON.stringify({ 'frame': { 'fingers': fingers } }))
-                }
-            }
-            if (hadRightHand && !hasRightHand) {
-                hadRightHand = false;
-                ws.send(JSON.stringify({ 'frame': { 'fingers': [] } }))
+                });
+                ws.send(JSON.stringify({ 'frame': { 'fingers': fingers } }))
             }
         }
-        send = !send;
+        if (hadRightHand && !hasRightHand) {
+            hadRightHand = false;
+            ws.send(JSON.stringify({ 'frame': { 'fingers': [] } }))
+        }
 
-        var { success, name, time } = recognizer.recognize(frame);
+        var { success, frames } = gestureSegmenter.segment(frame);
         if (success) {
-            console.log(name);
-            ws.send(JSON.stringify({ 'gesture': name }));
+            var { success, name, time } = recognizer.recognize(frames);
+            if (success) {
+                console.log(name);
+                ws.send(JSON.stringify({ 'gesture': name }));
+            }
         }
     });
 

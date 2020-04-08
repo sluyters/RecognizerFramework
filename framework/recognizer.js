@@ -1,7 +1,7 @@
 class AbstractRecognizer {
 
-    constructor(name) {
-        this.name = name;
+    constructor(templates) {
+        // Empty
     }
 
     /**
@@ -18,10 +18,6 @@ class AbstractRecognizer {
      */
     recognize(frame) {
         throw new Error('You have to implement this function');
-    }
-
-    getName() {
-        return this.name;
     }
 
 }
