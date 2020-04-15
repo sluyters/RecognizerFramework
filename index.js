@@ -1,8 +1,11 @@
 //const Recognizer = require('./implementation/gesture-recognizer/programmatic-recognizer').Recognizer;
-const Recognizer = require('./implementation/gesture-recognizer/P3DollarPlusXRecognizer').Recognizer;
+//const Recognizer = require('./implementation/gesture-recognizer/P3DollarPlusXRecognizer').Recognizer;
+const Recognizer = require('./implementation/gesture-recognizer/HybridP3DollarPlusXRecognizer/HybridP3DollarPlusXRecognizer').Recognizer
+
 const SensorIF = require('./implementation/sensor-interface/leap-interface').SensorIF;
 const DataLoader = require('./implementation/leap-dataloader');
-const GestureSegmenter = require('./implementation/gesture-segmenter/lefthand-segmenter').Segmenter
+//const GestureSegmenter = require('./implementation/gesture-segmenter/window-segmenter').Segmenter
+const GestureSegmenter = require('./implementation/gesture-segmenter/lefthand-segmenter').Segmenter;
 //const GestureSegmenter = require('./implementation/gesture-segmenter/frame-segmenter').Segmenter;
 //const DataParser = require('./implementation/leap-dataparser');
 const WebSocket = require('ws');

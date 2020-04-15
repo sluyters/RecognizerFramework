@@ -13,10 +13,10 @@ class AbstractRecognizer {
     }
 
     /**
-     * Check whether the frame (and earlier frames) correspond to a known gesture.
-     * @param {Object} frame - A frame from the sensor.
+     * Check whether the set of frames corresponds to a known gesture.
+     * @param {Object} frames - A set of frames from the sensor.
      */
-    recognize(frame) {
+    recognize(frames) {
         throw new Error('You have to implement this function');
     }
 

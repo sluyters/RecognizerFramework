@@ -1,24 +1,20 @@
 class Segmenter {
     constructor() {
         this.frameBuffer = [];
-        this.minFrames = 10;
-        this.maxFrames = 180;
+        this.windowWidth = 60;
+        this.numberPauseFrames = 80;
+        this.pauseCount = 0;
     }
 
     segment(frame) {
-        for (const hand of frame.hands) {
-            if (hand.type === 'left') {
-                this.frameBuffer.push(frame);
-            } else if (this.frameBuffer.length > this.minFrames) {
-                let oldFrameBuffer = this.frameBuffer;
-                this.frameBuffer = [];
-                return { success: true, frames: oldFrameBuffer };
-            }
+        this.frameBuffer.push(frame);
+        if (this.frameBuffer.length < this.windowWidth) {
+            return { success: false, frames: [] };
         }
-        if (this.frameBuffer.length >= this.maxFrames) {
-            let oldFrameBuffer = this.frameBuffer;
-            this.frameBuffer = [];
-            return { success: true, frames: oldFrameBuffer };
+        this.frameBuffer.shift();
+        this.pauseCount = (this.pauseCount + 1) % this.numberPauseFrames;
+        if (this.pauseCount + 1 == this.numberPauseFrames) {
+            return { success: true, frames: this.frameBuffer.slice() };
         }
         return { success: false, frames: [] };
     }

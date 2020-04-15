@@ -7,26 +7,6 @@ class SensorIF extends AbstractSensorIF {
         super("Leap-Interface");
         this.callback = (frame, appData) => {};
         this.controller = Leap.loop(function (frame) {
-            // let appData = {};
-            // for (const hand of frame.hands) {
-            //     var fingers = [];
-            //     hand.fingers.forEach((pointable) => {
-            //         const position = pointable.stabilizedTipPosition;
-            //         const normalized = frame.interactionBox.normalizePoint(position);
-            //         fingers.push({ 
-            //             'type': pointable.type, 
-            //             'normalizedPosition': normalized, 
-            //             'touchDistance': pointable.touchDistance, 
-            //             'tipVelocity': pointable.tipVelocity 
-            //         });
-            //     });
-            //     if (hand.type === "right") {
-            //         appData['rightHand'] = fingers;
-            //     } else {
-            //         appData['leftHand'] = fingers;
-            //     }
-            // }
-            // this.callback(frame, appData);
             this.callback(frame);
         }.bind(this));
     }

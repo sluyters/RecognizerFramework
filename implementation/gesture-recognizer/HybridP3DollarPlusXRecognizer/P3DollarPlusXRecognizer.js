@@ -1,4 +1,4 @@
-const AbstractRecognizer = require('../../framework/recognizer').AbstractRecognizer;
+const AbstractRecognizer = require('../../../framework/recognizer').AbstractRecognizer;
 
 /**
  * The $P+ Point-Cloud Recognizer (JavaScript version)
@@ -82,7 +82,7 @@ const Origin = new Point(0, 0, 0, 0);
 //
 class Recognizer extends AbstractRecognizer {
 
-    constructor(templates) {
+    constructor(templates = {}) {
 		super();
 		this.PointClouds = new Array();
 		this.conflicts = {};
@@ -98,8 +98,7 @@ class Recognizer extends AbstractRecognizer {
 	//
 	// The $P+ Point-Cloud Recognizer API begins here -- 3 methods: Recognize(), AddGesture(), DeleteUserGestures()
 	//
-	recognize(frames) {
-		let points = convert(frames);
+	recognize(points) {
 		if (points.length < 2) {
 			//return { 'Name': 'No match', 'Time': 0.0, 'Score': 0.0 };
 			return { success: false, name: "", time: 0.0 };
@@ -117,16 +116,10 @@ class Recognizer extends AbstractRecognizer {
 		}
 
 		let t1 = Date.now();
-		//return (u == -1) ? { 'Name': 'No match', 'Time': t1-t0, 'Score': 0.0 } : { 'Name': this.PointClouds[u].Name, 'Time': t1-t0, 'Score': b > 1.0 ? 1.0 / b : 1.0 };
-		// console.log(b > 1.0 ? 1.0 / b : 1.0);
-		// if ((b > 1.0 ? 1.0 / b : 1.0) < 0.25 ) {
-		// 	return { success: false, name: "", time: t1-t0 };
-		// }
 		return (u == -1) ? { success: false, name: "", time: t1-t0 } :  { success: true, name: this.PointClouds[u].Name, time: t1-t0 };
 	}
 
-	addGesture(name, sample) {
-		let points = convert(sample);
+	addGesture(name, points) {
 		var template = new PointCloud(name, points);
 
 		if (this.PointClouds.length > 0) {
@@ -168,11 +161,6 @@ class Recognizer extends AbstractRecognizer {
 
 function convert(frames) {
     let points = [];
-    // sample.strokes.forEach((stroke, stroke_id) => {
-    //    stroke.points.forEach((point) => {
-    //        points.push(new Point(point.x, point.y, point.z, stroke_id));
-    //    });
-	// });
 
 	for (const frame of frames) {
 		for (const hand of frame.hands) {
@@ -185,7 +173,6 @@ function convert(frames) {
 			}
 		}
 	}
-	//console.log(points)
     return points;
 }
 
