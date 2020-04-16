@@ -5,7 +5,7 @@ class SensorIF extends AbstractSensorIF {
 
     constructor() {
         super("Leap-Interface");
-        this.callback = (frame, appData) => {};
+        this.callback = (frame) => {};
         this.controller = Leap.loop(function (frame) {
             this.callback(frame);
         }.bind(this));

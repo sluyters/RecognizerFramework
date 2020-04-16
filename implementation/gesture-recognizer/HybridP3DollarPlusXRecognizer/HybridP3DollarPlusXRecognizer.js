@@ -13,6 +13,9 @@ class Recognizer extends AbstractRecognizer {
         // Initialize recognizer for fine movements
         this.smallScaleRecognizer = new P3DollarPlusXRecognizer();
 
+        // Initialize recognizer for static gestures
+        //this.staticRecognizer = new P3DollarPlusXRecognizer();
+
         // Load templates
 		Object.keys(templates).forEach((name) => {
 			templates[name].forEach((template) => {
@@ -88,6 +91,7 @@ function parseData(frames) {
         for (const pointable of frame['pointables']) {
             if (!pointable.tool && pointable.handId == handId) {
                 let tipPosition = pointable['tipPosition'];
+
                 if (pointable.type == 0 || pointable.type == 1) {   // Index or thumb
                     let x = tipPosition[0] - palm.x;
                     let y = tipPosition[1] - palm.y;

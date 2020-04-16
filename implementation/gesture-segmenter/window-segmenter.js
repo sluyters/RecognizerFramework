@@ -1,8 +1,8 @@
 class Segmenter {
     constructor() {
         this.frameBuffer = [];
-        this.windowWidth = 60;
-        this.numberPauseFrames = 80;
+        this.windowWidth = 40;
+        this.numberPauseFrames = 60;
         this.pauseCount = 0;
     }
 
