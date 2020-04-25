@@ -1,9 +1,11 @@
 //const Recognizer = require('./implementation/gesture-recognizer/programmatic-recognizer').Recognizer;
 //const Recognizer = require('./implementation/gesture-recognizer/P3DollarPlusXRecognizer').Recognizer;
-const Recognizer = require('./implementation/gesture-recognizer/HybridP3DollarPlusXRecognizer/HybridP3DollarPlusXRecognizer').Recognizer
+//const Recognizer = require('./implementation/gesture-recognizer/HybridP3DollarPlusXRecognizer/HybridP3DollarPlusXRecognizer').Recognizer
+const Recognizer = require('./implementation/gesture-recognizer/JackknifeRecognizer/JackknifeRecognizer').Recognizer;
 
 const SensorIF = require('./implementation/sensor-interface/leap-interface').SensorIF;
-const DataLoader = require('./implementation/leap-dataloader');
+//const DataLoader = require('./implementation/leap-dataloader');
+const Dataset = require('./implementation/training-dataset/GuinevereUnified/GuinevereUnified');
 //const GestureSegmenter = require('./implementation/gesture-segmenter/window-segmenter').Segmenter
 const GestureSegmenter = require('./implementation/gesture-segmenter/lefthand-segmenter').Segmenter;
 //const GestureSegmenter = require('./implementation/gesture-segmenter/frame-segmenter').Segmenter;
@@ -16,16 +18,17 @@ const path = require('path');
 const APP_INTERFACE_IP = '127.0.0.1';
 const APP_INTERFACE_PORT = 6442;
 
+// Other constants
+const NUM_POINTS = 16;
+
 // Load the training set and feed it to the recognizer
-const trainingSetPath = path.join(__dirname, "implementation", "training-dataset");
-var trainingSet = DataLoader.load(trainingSetPath);
-var recognizer = new Recognizer(trainingSet);
+var trainingSet = Dataset.loadDataset();
+var recognizer = new Recognizer(NUM_POINTS, trainingSet);
 var gestureSegmenter = new GestureSegmenter();
 
 var sensorIF = new SensorIF();
 
 var wsServer = getWebSocketServer(APP_INTERFACE_IP, APP_INTERFACE_PORT);
-var x = 0;
 wsServer.on('connection', async function connection(ws) {
     console.log("Connected!");
 
@@ -42,19 +45,19 @@ wsServer.on('connection', async function connection(ws) {
     var hadRightHand = false;
 
     // Process sensor frames
-    sensorIF.loop((frame) => {
+    sensorIF.loop((parsedFrame, rawFrame) => {
 
         // TODO - move to another module
         // Send right hand fingers to the app 
         var hasRightHand = false;
-        for (const hand of frame.hands) {
+        for (const hand of rawFrame.hands) {
             if (hand.type === "right") {
                 hasRightHand = true;
                 hadRightHand = true;
                 var fingers = [];
                 hand.fingers.forEach((pointable) => {
                     const position = pointable.stabilizedTipPosition;
-                    const normalized = frame.interactionBox.normalizePoint(position);
+                    const normalized = rawFrame.interactionBox.normalizePoint(position);
                     fingers.push({ 
                         'type': pointable.type, 
                         'normalizedPosition': normalized, 
@@ -70,9 +73,10 @@ wsServer.on('connection', async function connection(ws) {
             ws.send(JSON.stringify({ 'frame': { 'fingers': [] } }))
         }
 
-        var { success, frames } = gestureSegmenter.segment(frame);
+        var { success, segment } = gestureSegmenter.segment(parsedFrame);
         if (success) {
-            var { success, name, time } = recognizer.recognize(frames);
+            console.log(success)
+            var { success, name, time } = recognizer.recognize(segment);
             if (success) {
                 console.log(name);
                 ws.send(JSON.stringify({ 'gesture': name }));

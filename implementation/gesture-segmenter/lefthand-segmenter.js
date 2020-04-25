@@ -1,26 +1,55 @@
+const StrokeData = require('../../framework/gestures/StrokeData').StrokeData;
+const Stroke = require('../../framework/gestures/StrokeData').Stroke;
+const Path = require('../../framework/gestures/StrokeData').Path;
+const Point = require('../../framework/gestures/Point').Point3D;
+
 class Segmenter {
     constructor() {
-        this.frameBuffer = [];
+        this.strokeData = null;
+        this.frameCount = 0;
         this.minFrames = 10;
         this.maxFrames = 180;
     }
 
     segment(frame) {
-        let hasLeftHand = false;
-        for (const hand of frame.hands) {
-            if (hand.type === 'left') {
-                hasLeftHand = true;
-                this.frameBuffer.push(frame);
+        if (frame.hasLeftHand) {
+            if (this.frameCount >= this.maxFrames) {
+                // Max number of frames reached
+                let oldStrokeData = this.strokeData;
+                this.strokeData = null;
+                this.frameCount = 0;
+                return { success: true, segment: oldStrokeData };
+            } 
+            if (this.strokeData === null) {
+                // Initialize strokeData
+                this.strokeData = new StrokeData();
+                let stroke = new Stroke();
+                this.strokeData.addStroke(stroke);
+                Object.keys(frame['articulations']).forEach(function(articulation) {
+                    let strokePath = new Path(articulation);
+                    stroke.addPath(articulation, strokePath);
+                    strokePath.addPoint(frame['articulations'][articulation]);
+                });
+            } else {
+                Object.keys(frame['articulations']).forEach(function(articulation) {
+                    let stroke = this.strokeData.strokes[0];
+                    let strokePath = stroke.paths[articulation];
+                    strokePath.addPoint(frame['articulations'][articulation]);
+                }.bind(this));
             }
+            this.frameCount++;
+        } else if (this.frameCount > this.minFrames) {
+            // Left hand removed and enough frames
+            let oldStrokeData = this.strokeData;
+            this.strokeData = null;
+            this.frameCount = 0;
+            return { success: true, segment: oldStrokeData };
+        } else {
+            // Left hand removed and not enough frames
+            this.strokeData = null;
+            this.frameCount = 0;
         }
-        if ((!hasLeftHand && (this.frameBuffer.length > this.minFrames)) || (this.frameBuffer.length >= this.maxFrames)) {
-            let oldFrameBuffer = this.frameBuffer;
-            this.frameBuffer = [];
-            return { success: true, frames: oldFrameBuffer };
-        } else if (!hasLeftHand) {
-            this.frameBuffer = [];
-        }
-        return { success: false, frames: [] };
+        return { success: false, segment: null };
     }
 }
 
