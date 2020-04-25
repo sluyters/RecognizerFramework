@@ -28,13 +28,23 @@ class Segmenter {
                 Object.keys(frame['articulations']).forEach(function(articulation) {
                     let strokePath = new Path(articulation);
                     stroke.addPath(articulation, strokePath);
-                    strokePath.addPoint(frame['articulations'][articulation]);
+                    // Quick hack to remove left hand
+                    if (articulation.includes("left")) {
+                        strokePath.addPoint(new Point(0, 0, 0, frame.timestamp));
+                    } else {
+                        strokePath.addPoint(frame['articulations'][articulation]);
+                    }
                 });
             } else {
                 Object.keys(frame['articulations']).forEach(function(articulation) {
                     let stroke = this.strokeData.strokes[0];
                     let strokePath = stroke.paths[articulation];
-                    strokePath.addPoint(frame['articulations'][articulation]);
+                    // Quick hack to remove left hand
+                    if (articulation.includes("left")) {
+                        strokePath.addPoint(new Point(0, 0, 0, frame.timestamp));
+                    } else {
+                        strokePath.addPoint(frame['articulations'][articulation]);
+                    }
                 }.bind(this));
             }
             this.frameCount++;
