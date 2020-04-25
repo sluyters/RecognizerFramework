@@ -9,8 +9,20 @@ class SensorIF extends AbstractSensorIF {
 
     constructor() {
         super("Leap-Interface");
-        this.callback = (frame) => {};
-        this.controller = Leap.loop(function (frame) {
+        this.controller = new Leap.Controller({
+            frameEventName: 'deviceFrame',
+            loopWhileDisconnected: false
+        })
+        this.sensorLoop = null;
+    }
+
+    loop(callback, options = {}) {
+        this.controller.connect()
+        this.callback = callback;
+
+        var processLeapFrame = function () {
+            let frame = this.controller.frame();
+
             let parsedFrame = initFrame(frame['timestamp']);
 
             let rightHandId = -1;
@@ -43,17 +55,18 @@ class SensorIF extends AbstractSensorIF {
                 }
             }
 
-            this.callback(parsedFrame, frame);
-        }.bind(this));
-    }
+            callback(parsedFrame, frame);
+        }.bind(this);
 
-    loop(callback, options = {}) {
-        this.controller.connect()
-        this.callback = callback;
+        this.sensorLoop = setInterval(processLeapFrame, 1000/60)
     }
 
     stop() {
-        this.controller.disconnect();
+        if (this.sensorLoop !== null) {
+            clearInterval(this.sensorLoop);
+            this.controller.disconnect();
+            this.sensorLoop = null;
+        }
     }
 
 }
