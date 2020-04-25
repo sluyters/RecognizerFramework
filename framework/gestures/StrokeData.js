@@ -4,7 +4,7 @@ class StrokeData {
         this.strokes = [];
     }
 
-    addStroke(stroke){
+    addStroke(stroke) {
         this.strokes.push(stroke);
     }
 
@@ -16,7 +16,7 @@ class Stroke {
         this.paths = {};
     }
 
-    addPath(label, path){
+    addPath(label, path) {
         this.paths[label] = path;
     }
 }
@@ -27,7 +27,11 @@ class Path {
         this.points = [];
     }
 
-    addPoint(point){
+    setPoints(points) {
+        this.points = points;
+    }
+
+    addPoint(point) {
         this.points.push(point);
     }
 }

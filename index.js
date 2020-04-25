@@ -5,9 +5,10 @@ const Recognizer = require('./implementation/gesture-recognizer/JackknifeRecogni
 
 const SensorIF = require('./implementation/sensor-interface/leap-interface').SensorIF;
 //const DataLoader = require('./implementation/leap-dataloader');
-const Dataset = require('./implementation/training-dataset/GuinevereUnified/GuinevereUnified');
-//const GestureSegmenter = require('./implementation/gesture-segmenter/window-segmenter').Segmenter
-const GestureSegmenter = require('./implementation/gesture-segmenter/lefthand-segmenter').Segmenter;
+//const Dataset = require('./implementation/training-dataset/GuinevereUnified/Dataset');
+const Dataset = require('./implementation/training-dataset/BasicDataset/Dataset');
+const GestureSegmenter = require('./implementation/gesture-segmenter/window-segmenter').Segmenter
+//const GestureSegmenter = require('./implementation/gesture-segmenter/lefthand-segmenter').Segmenter;
 //const GestureSegmenter = require('./implementation/gesture-segmenter/frame-segmenter').Segmenter;
 //const DataParser = require('./implementation/leap-dataparser');
 const WebSocket = require('ws');
@@ -75,10 +76,10 @@ wsServer.on('connection', async function connection(ws) {
 
         var { success, segment } = gestureSegmenter.segment(parsedFrame);
         if (success) {
-            console.log(success)
             var { success, name, time } = recognizer.recognize(segment);
             if (success) {
                 console.log(name);
+                gestureSegmenter.notifyRecognition();
                 ws.send(JSON.stringify({ 'gesture': name }));
             }
         }

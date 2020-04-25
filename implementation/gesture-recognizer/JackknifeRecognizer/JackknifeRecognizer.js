@@ -25,7 +25,7 @@ class Recognizer extends AbstractRecognizer {
 					}
 				);
             });
-            //this.jackknifeRecognizer.train(6, 2, 1.0);
+            this.jackknifeRecognizer.train(6, 2, 1.0);
         }
     }
     
