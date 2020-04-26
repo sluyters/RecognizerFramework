@@ -4,11 +4,11 @@ const Path = require('../../framework/gestures/StrokeData').Path;
 
 class Segmenter {
     
-    constructor() {
+    constructor(options) {
+        this.windowWidth = options.windowWidth;
+        this.numberIntervalFrames = options.intervalLength;
+        this.numberPauseFrames = options.pauseLength;
         this.frameBuffer = null;
-        this.windowWidth = 40; // 0.66 second
-        this.numberIntervalFrames = 12; // 200ms
-        this.numberPauseFrames = 60; // 1 second 
         this.intervalCount = 0;
         this.pauseCount = 0;
         this.bufferLength = 0;

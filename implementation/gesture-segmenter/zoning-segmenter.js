@@ -6,11 +6,11 @@ const xBound = 120;
 const zBound = 60;
 
 class Segmenter {
-    constructor() {
+    constructor(options) {
+        this.minFrames = options.minSegmentLength;
+        this.maxFrames = options.maxSegmentLength;
+        this.numberPauseFrames = options.pauseLength;
         this.strokeData = null;
-        this.minFrames = 10;
-        this.maxFrames = 60; // 1 second
-        this.numberPauseFrames = 30; // 0.5 second 
         this.pauseCount = 0;
     }
 

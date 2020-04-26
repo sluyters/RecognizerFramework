@@ -4,11 +4,11 @@ const Path = require('../../framework/gestures/StrokeData').Path;
 const Point = require('../../framework/gestures/Point').Point3D;
 
 class Segmenter {
-    constructor() {
+    constructor(options) {
+        this.minFrames = options.minSegmentLength;
+        this.maxFrames = options.maxSegmentLength;
         this.strokeData = null;
         this.frameCount = 0;
-        this.minFrames = 10;
-        this.maxFrames = 180;
     }
 
     segment(frame) {

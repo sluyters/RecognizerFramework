@@ -5,9 +5,9 @@ class Recognizer extends AbstractRecognizer {
 
     static name = "UVPRecognizer";
 
-    constructor(N, dataset) {
+    constructor(options, dataset) {
         super();
-        this.N = N;
+        this.N = options.samplingPoints;
         this.recognizer = null;
         if (dataset !== undefined) {
             dataset.getGestureClass().forEach((gesture) => {

@@ -7,8 +7,9 @@ const fingers = ["rightThumbPosition", "rightIndexPosition", "rightMiddlePositio
 
 class SensorIF extends AbstractSensorIF {
 
-    constructor() {
+    constructor(options) {
         super("Leap-Interface");
+        this.framerate = options.framerate;
         this.controller = new Leap.Controller({
             frameEventName: 'deviceFrame',
             loopWhileDisconnected: false
@@ -16,17 +17,15 @@ class SensorIF extends AbstractSensorIF {
         this.sensorLoop = null;
     }
 
-    loop(callback, options = {}) {
+    loop(callback) {
         this.controller.connect()
         this.callback = callback;
 
         var processLeapFrame = function () {
             let frame = this.controller.frame();
-
             let parsedFrame = initFrame(frame['timestamp']);
 
             let rightHandId = -1;
-            let leftHandId = -1;
 
             // Palm positions
             for (const hand of frame['hands']) {
@@ -37,7 +36,6 @@ class SensorIF extends AbstractSensorIF {
                     parsedFrame['hasRightHand'] = true;
                 }
                 else {
-                    leftHandId = hand['id'];
                     palmName = "leftPalmPosition";
                     parsedFrame['hasLeftHand'] = true;
                 }
@@ -58,7 +56,7 @@ class SensorIF extends AbstractSensorIF {
             callback(parsedFrame, frame);
         }.bind(this);
 
-        this.sensorLoop = setInterval(processLeapFrame, 1000/60)
+        this.sensorLoop = setInterval(processLeapFrame, 1000/this.framerate);
     }
 
     stop() {
@@ -68,7 +66,6 @@ class SensorIF extends AbstractSensorIF {
             this.sensorLoop = null;
         }
     }
-
 }
 
 function initFrame(timestamp) {

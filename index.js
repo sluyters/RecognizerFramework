@@ -1,40 +1,24 @@
-//const Recognizer = require('./implementation/gesture-recognizer/programmatic-recognizer').Recognizer;
-//const Recognizer = require('./implementation/gesture-recognizer/P3DollarPlusXRecognizer').Recognizer;
-//const Recognizer = require('./implementation/gesture-recognizer/HybridP3DollarPlusXRecognizer/HybridP3DollarPlusXRecognizer').Recognizer
-//const Recognizer = require('./implementation/gesture-recognizer/JackknifeRecognizer/Recognizer').Recognizer;
-const Recognizer = require('./implementation/gesture-recognizer/UVPRecognizer/Recognizer').Recognizer;
-const SensorIF = require('./implementation/sensor-interface/leap-interface').SensorIF;
-//const DataLoader = require('./implementation/leap-dataloader');
-//const Dataset = require('./implementation/training-dataset/GuinevereUnified/Dataset');
-const Dataset = require('./implementation/training-dataset/BasicDataset/Dataset');
-//const GestureSegmenter = require('./implementation/gesture-segmenter/window-segmenter').Segmenter
-const GestureSegmenter = require('./implementation/gesture-segmenter/zoning-segmenter').Segmenter
-//const GestureSegmenter = require('./implementation/gesture-segmenter/lefthand-segmenter').Segmenter;
-//const GestureSegmenter = require('./implementation/gesture-segmenter/frame-segmenter').Segmenter;
-//const DataParser = require('./implementation/leap-dataparser');
 const WebSocket = require('ws');
 const http = require('http');
-const path = require('path');
+const config = require('./config');
 
-// Port and ip of the websocket server
-const APP_INTERFACE_IP = '127.0.0.1';
-const APP_INTERFACE_PORT = 6442;
+// Load the modules
+const Recognizer = config.recognizer.module;
+const SensorIF = config.sensorIF.module;
+const Dataset = config.dataset.module;
+const GestureSegmenter = config.segmenter.module;
 
-// Other constants
-const NUM_POINTS = 16;
+// Initialize the sensor interface, recognizer and segmenter
+var sensorIF = new SensorIF(config.sensorIF.options);
+var recognizer = new Recognizer(config.recognizer.options, Dataset.loadDataset());
+var gestureSegmenter = new GestureSegmenter(config.segmenter.options);
 
-// Load the training set and feed it to the recognizer
-var trainingSet = Dataset.loadDataset();
-var recognizer = new Recognizer(NUM_POINTS, trainingSet);
-var gestureSegmenter = new GestureSegmenter();
-
-var sensorIF = new SensorIF();
-
-var wsServer = getWebSocketServer(APP_INTERFACE_IP, APP_INTERFACE_PORT);
+// Start the websocket server
+var wsServer = getWebSocketServer(config.server.ip, config.server.port);
 wsServer.on('connection', async function connection(ws) {
-    console.log("Connected!");
-
+    // Wait 100ms
     await new Promise(resolve => setTimeout(resolve, 100));
+    console.log("Connected!");
     
     // Set callback
     ws.on('message', function incoming(message) {
@@ -45,10 +29,8 @@ wsServer.on('connection', async function connection(ws) {
     });
 
     var hadRightHand = false;
-
     // Process sensor frames
     sensorIF.loop((parsedFrame, rawFrame) => {
-
         // TODO - move to another module
         // Send right hand fingers to the app 
         var hasRightHand = false;
@@ -70,14 +52,16 @@ wsServer.on('connection', async function connection(ws) {
                 ws.send(JSON.stringify({ 'frame': { 'fingers': fingers } }))
             }
         }
+        // If the hand is not visible anymore, send empty data once
         if (hadRightHand && !hasRightHand) {
             hadRightHand = false;
             ws.send(JSON.stringify({ 'frame': { 'fingers': [] } }))
         }
 
+        // Gesture segmentation
         var { success, segment } = gestureSegmenter.segment(parsedFrame);
         if (success) {
-            console.log(success)
+            // Gesture recognition
             var { success, name, time } = recognizer.recognize(segment);
             if (success) {
                 console.log(name);
@@ -95,10 +79,7 @@ wsServer.on('connection', async function connection(ws) {
         sensorIF.stop();
     });
 });
-    
-    
 
-// Helpers
 function getWebSocketServer(ip, port) {
     // Create an HTTP server 
     var server = http.createServer();
