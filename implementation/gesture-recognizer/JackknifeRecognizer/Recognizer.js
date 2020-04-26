@@ -4,20 +4,16 @@ const Jackknife = require('./jackknife_recognizer').Jackknife;
 const Vector = require('./vector').Vector;
 const Sample = require('./sample').Sample;
 
-NumPoints = 8;
-
 class Recognizer extends AbstractRecognizer {
 
     static name = "JackknifeRecognizer";
 
     constructor(N, dataset) {
 		super();
-        NumPoints = N;
-
+        this.N = N;
         let blades = new jackknife_blades();
         blades.set_ip_defaults();
         this.jackknifeRecognizer = new Jackknife(blades)
-        
 		if (dataset !== undefined){
 			dataset.getGestureClass().forEach((gesture, key, self) => {
 				gesture.getSample().forEach(sample => {

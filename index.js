@@ -1,8 +1,8 @@
 //const Recognizer = require('./implementation/gesture-recognizer/programmatic-recognizer').Recognizer;
 //const Recognizer = require('./implementation/gesture-recognizer/P3DollarPlusXRecognizer').Recognizer;
 //const Recognizer = require('./implementation/gesture-recognizer/HybridP3DollarPlusXRecognizer/HybridP3DollarPlusXRecognizer').Recognizer
-const Recognizer = require('./implementation/gesture-recognizer/JackknifeRecognizer/JackknifeRecognizer').Recognizer;
-
+//const Recognizer = require('./implementation/gesture-recognizer/JackknifeRecognizer/Recognizer').Recognizer;
+const Recognizer = require('./implementation/gesture-recognizer/UVPRecognizer/Recognizer').Recognizer;
 const SensorIF = require('./implementation/sensor-interface/leap-interface').SensorIF;
 //const DataLoader = require('./implementation/leap-dataloader');
 //const Dataset = require('./implementation/training-dataset/GuinevereUnified/Dataset');
