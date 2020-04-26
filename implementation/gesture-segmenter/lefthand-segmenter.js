@@ -61,6 +61,10 @@ class Segmenter {
         }
         return { success: false, segment: null };
     }
+
+    notifyRecognition() {
+        // Do nothing
+    }
 }
 
 module.exports = {
