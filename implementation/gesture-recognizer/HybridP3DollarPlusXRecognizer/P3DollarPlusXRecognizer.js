@@ -82,17 +82,11 @@ const Origin = new Point(0, 0, 0, 0);
 //
 class Recognizer extends AbstractRecognizer {
 
-    constructor(templates = {}) {
+    constructor(N) {
 		super();
+		NumPoints = N;
 		this.PointClouds = new Array();
 		this.conflicts = {};
-
-		// Load templates
-		Object.keys(templates).forEach((name) => {
-			templates[name].forEach((template) => {
-				this.addGesture(name, template.data);
-			});
-		});
 	}
 	
 	//
@@ -157,23 +151,6 @@ class Recognizer extends AbstractRecognizer {
 		}
 		return {u, b};
 	}
-}
-
-function convert(frames) {
-    let points = [];
-
-	for (const frame of frames) {
-		for (const hand of frame.hands) {
-			if (hand.type === "right") {
-				let palmPosition = hand['palmPosition']
-				let x = palmPosition[0];
-				let y = palmPosition[1];
-				let z = palmPosition[2];
-				points.push(new Point(x, y, z, 0));
-			}
-		}
-	}
-    return points;
 }
 
 //
@@ -344,7 +321,7 @@ function Distance(p1, p2) // Euclidean distance between two points
 }
 
 function DirDist(points1, points2) {
-	const padding = 2;
+	const padding = 1;
 	let dist = 0;
 	for (var i = padding; i < NumPoints - (1 + padding); i+=1) {
 		let v1x = points1[i+1].x - points1[i].x;

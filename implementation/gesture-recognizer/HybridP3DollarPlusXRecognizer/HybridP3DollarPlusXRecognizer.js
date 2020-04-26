@@ -4,29 +4,32 @@ const Point = require('./P3DollarPlusXRecognizer').Point;
 
 class Recognizer extends AbstractRecognizer {
 
-	constructor(templates = {}) {
+	constructor(options, dataset) {
 		super();
-        
+        this.N = options.samplingPoints;
+
         // Initialize recognizer for large scale movement
-        this.largeScaleRecognizer = new P3DollarPlusXRecognizer();
+        this.largeScaleRecognizer = new P3DollarPlusXRecognizer(options.samplingPoints);
 
         // Initialize recognizer for fine movements
-        this.smallScaleRecognizer = new P3DollarPlusXRecognizer();
+        this.smallScaleRecognizer = new P3DollarPlusXRecognizer(options.samplingPoints);
 
         // Initialize recognizer for static gestures
         //this.staticRecognizer = new P3DollarPlusXRecognizer();
 
         // Load templates
-		Object.keys(templates).forEach((name) => {
-			templates[name].forEach((template) => {
-				this.addGesture(name, template.data);
-			});
-		});
+		if (dataset !== undefined){
+			dataset.getGestureClass().forEach((gesture) => {
+				gesture.getSample().forEach(sample => {
+						this.addGesture(gesture.name, sample);
+					}
+				);
+            });
+        }
 	}
 
-	addGesture(name, frames){
-        const { scale, gestureData } = parseData(frames);
-
+	addGesture(name, sample){
+        const { scale, gestureData } = parseData(sample);
         // Add gesture
         if (scale === "small") {
             this.smallScaleRecognizer.addGesture(name, gestureData);
@@ -37,9 +40,8 @@ class Recognizer extends AbstractRecognizer {
         }
     }
 
-    recognize(frames){
-        const { scale, gestureData } = parseData(frames);
-
+    recognize(sample){
+        const { scale, gestureData } = parseData(sample);
         if (scale === "small") {
             return this.smallScaleRecognizer.recognize(gestureData);
         } else if (scale === "large") {
@@ -51,75 +53,56 @@ class Recognizer extends AbstractRecognizer {
 	}
 }
 
-function parseData(frames) {
-    const palmThreshold = 38;
-    const fingerThreshold = 10;
+function parseData(sample) {
+    const palmThreshold = 50;
+    const fingerThreshold = 15;
 
-    let largeScaleGestureData = [];
-    let smallScaleGestureData = [];
+    let stroke = sample.strokes[0];
 
+    // Determine max palm translation
     let maxPalmTranslation = 0;
-    let maxFingerTranslation = 0;
-    let palmInit = "";
-    let fingerInit = {};
-    let fingersData = {};
-
-    let handId = -1;
-    let palm = "";
-    for (const frame of frames) {
-        // Palm movement
-        for (const hand of frame.hands) {
-            if (hand.type === "right") {
-                handId = hand.id;
-                let palmPosition = hand['palmPosition']
-                let x = palmPosition[0];
-                let y = palmPosition[1];
-                let z = palmPosition[2];
-                palm = new Point(x, y, z, 0);
-                largeScaleGestureData.push(palm);
-
-                if (palmInit) {
-                    let palmTranslation = distance(palmInit, palm);
-                    maxPalmTranslation = Math.max(palmTranslation, maxPalmTranslation);
-                } else {
-                    palmInit = palm;
-                }
-            }
-        }
-
-        // Finger movement
-        for (const pointable of frame['pointables']) {
-            if (!pointable.tool && pointable.handId == handId) {
-                let tipPosition = pointable['tipPosition'];
-
-                if (pointable.type == 0 || pointable.type == 1) {   // Index or thumb
-                    let x = tipPosition[0] - palm.x;
-                    let y = tipPosition[1] - palm.y;
-                    let z = tipPosition[2] - palm.z;
-                    finger = new Point(x, y, z, pointable.type);
-
-                    if (fingersData.hasOwnProperty(pointable.type)) {
-                        let fingerTranslation = distance(fingersData[pointable.type][0], finger);
-                        maxFingerTranslation = Math.max(fingerTranslation, maxFingerTranslation);
-                        fingersData[pointable.type].push(finger);
-                    } else {
-                        fingersData[pointable.type] = [finger];
-                    }
-                }                    
-            }
-        }
+    let palmData = [];
+    for (const point of stroke.paths['rightPalmPosition'].points) {
+        palm = new Point(point.x, point.y, point.z, 0);
+        palmData.push(palm);
+        let palmTranslation = distance(palmData[0], palm);
+        maxPalmTranslation = Math.max(palmTranslation, maxPalmTranslation);
     }
 
-    //console.log(`Palm: ${maxPalmTranslation} | Finger: ${maxFingerTranslation}`);
+    // Determine max finger translation
+    let maxFingerTranslation = 0;
+    let fingerId = 0;
+    let fingersData = {};
+    for (const finger of ["rightThumbPosition", "rightIndexPosition"]) {
+        fingersData[finger] = [];
+        for (let i = 0; i < stroke.paths[finger].points.length; i++) {
+            let palmPoint = stroke.paths['rightPalmPosition'].points[i];
+            let fingerPoint = stroke.paths[finger].points[i];
+            // Compute translated point
+            let x = fingerPoint.x - palmPoint.x;
+            let y = fingerPoint.y - palmPoint.y;
+            let z = fingerPoint.z - palmPoint.z;
+            let translatedPoint = new Point(x, y, z, fingerId);
+            // Add translated point to list
+            fingersData[finger].push(translatedPoint);
+            let fingerTranslation = distance(fingersData[finger][0], translatedPoint);
+            maxFingerTranslation = Math.max(fingerTranslation, maxFingerTranslation);
+        }
+        fingerId++;
+    }
 
     if (maxPalmTranslation > maxFingerTranslation * 1.2 && maxPalmTranslation > palmThreshold) {
-        return { scale: "large", gestureData: largeScaleGestureData };
+        // Large scale gesture
+        return { scale: "large", gestureData: palmData };
     } else if (maxFingerTranslation > fingerThreshold) {
+        // Small scale gesture
+        let smallScaleGestureData = [];
         Object.keys(fingersData).forEach((finger) => {
 			smallScaleGestureData = smallScaleGestureData.concat(fingersData[finger]);
 		});
         return { scale: "small", gestureData: smallScaleGestureData };
     } else {
+        // Neither large nor small
         return { scale: "", gestureData: [] };
     }
 }

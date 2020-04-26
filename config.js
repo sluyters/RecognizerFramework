@@ -44,7 +44,7 @@ config.sensorIF.options.framerate = 60;				// Sensor framerate [seconds]
 config.dataset.module = BasicDataset;
 
 // Gesture Segmenter
-config.segmenter.module = LeftHandSegmenter;
+config.segmenter.module = ZoningSegmenter;
 config.segmenter.options.minSegmentLength = 10;		// Minimum length of a segment (if applicable) [#frames]
 config.segmenter.options.maxSegmentLength = 60;		// Maximum length of a segment (if applicable) [#frames]
 config.segmenter.options.windowWidth = 40;			// Width of the window (if applicable) [#frames]
@@ -54,7 +54,7 @@ config.segmenter.options.xBound = 120;				// 1/2 width of the zone (if applicabl
 config.segmenter.options.zBound = 60;				// 1/2 depth of the zone (if applicable) [mm]
 
 // Gesture Recognizer
-config.recognizer.module = JackknifeRecognizer;
-config.recognizer.options.samplingPoints = 60;		// Number of sampling points [#points]
+config.recognizer.module = HybridP3DollarPlusXRecognizer;
+config.recognizer.options.samplingPoints = 16;		// Number of sampling points [#points]
 
 module.exports = config;
