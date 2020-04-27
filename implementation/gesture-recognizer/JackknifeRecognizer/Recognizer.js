@@ -27,6 +27,9 @@ class Recognizer extends AbstractRecognizer {
     
     recognize(sample) {
         let jackknifeSample = convert(sample);
+        if (!jackknifeSample) {
+            return { success: false, name: 'No match', time: 0.0 };
+        }
         let t0 = Date.now();
         let ret = this.jackknifeRecognizer.classify(jackknifeSample);
         let t1 = Date.now();
@@ -35,9 +38,11 @@ class Recognizer extends AbstractRecognizer {
 
 	addGesture(name, sample, train = false) {
         let jackknifeSample = convert(sample, name);
-        this.jackknifeRecognizer.add_template(jackknifeSample);
-        if (train) {
-            this.jackknifeRecognizer.train(6, 2, 1.0);
+        if (jackknifeSample) {
+            this.jackknifeRecognizer.add_template(jackknifeSample);
+            if (train) {
+                this.jackknifeRecognizer.train(6, 2, 1.0);
+            }
         }
 	}
 }
@@ -50,6 +55,15 @@ function convert(sample, name) {
         jackknifeSample = new Sample();
     }
 
+    // check min distance START
+    let maxMovement = 0;
+    let threshold = 50;
+    let initPoints = {};
+    for (const articulation of Object.keys(sample.strokes[0].paths)) {
+        initPoints[articulation] = sample.strokes[0].paths[articulation].points[0];
+    }
+    // check min distance END
+
     sample.strokes.forEach((stroke) => {
         let trajectory = [];
         let labels = Object.keys(stroke.paths).sort();
@@ -57,7 +71,11 @@ function convert(sample, name) {
         for (let i = 0; i < nFrames; i++) {
             let vCoordinates = []; 
             for (const label of labels) {
-                let point = stroke.paths[label].points[i]   
+                let point = stroke.paths[label].points[i]
+                // check min distance START
+                let articulationMovement = distance(point, initPoints[label]);
+                maxMovement = Math.max(maxMovement, articulationMovement); 
+                // check min distance END
                 vCoordinates.push(point.x);
                 vCoordinates.push(point.y);
                 vCoordinates.push(point.z);
@@ -66,7 +84,17 @@ function convert(sample, name) {
         }    
         jackknifeSample.add_trajectory(trajectory);
     });
-    return jackknifeSample;
+    
+    return maxMovement > threshold ? jackknifeSample : null;
+    //return jackknifeSample;
+}
+
+function distance(p1, p2) // Euclidean distance between two points
+{
+	var dx = p2.x - p1.x;
+	var dy = p2.y - p1.y;
+	var dz = p2.z - p1.z;
+	return Math.sqrt(dx * dx + dy * dy + dz * dz);
 }
 
 module.exports = {

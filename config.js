@@ -15,7 +15,7 @@ const FrameSegmenter = require('./implementation/gesture-segmenter/frame-segment
 // Gesture Recognizers
 const ProgrammaticRecognizer = require('./implementation/gesture-recognizer/programmatic-recognizer').Recognizer;
 const P3DollarPlusXRecognizer = require('./implementation/gesture-recognizer/P3DollarPlusXRecognizer').Recognizer;
-const HybridP3DollarPlusXRecognizer = require('./implementation/gesture-recognizer/HybridP3DollarPlusXRecognizer/HybridP3DollarPlusXRecognizer').Recognizer
+const HybridP3DollarPlusXRecognizer = require('./implementation/gesture-recognizer/HybridP3DollarPlusXRecognizer/Recognizer').Recognizer
 const JackknifeRecognizer = require('./implementation/gesture-recognizer/JackknifeRecognizer/Recognizer').Recognizer;
 const UVPRecognizer = require('./implementation/gesture-recognizer/UVPRecognizer/Recognizer').Recognizer;
 
@@ -44,17 +44,17 @@ config.sensorIF.options.framerate = 60;				// Sensor framerate [seconds]
 config.dataset.module = BasicDataset;
 
 // Gesture Segmenter
-config.segmenter.module = ZoningSegmenter;
+config.segmenter.module = WindowSegmenter;
 config.segmenter.options.minSegmentLength = 10;		// Minimum length of a segment (if applicable) [#frames]
 config.segmenter.options.maxSegmentLength = 60;		// Maximum length of a segment (if applicable) [#frames]
-config.segmenter.options.windowWidth = 40;			// Width of the window (if applicable) [#frames]
+config.segmenter.options.windowWidth = 30;			// Width of the window (if applicable) [#frames]
 config.segmenter.options.intervalLength = 12;		// Length of the interval between 2 consecutive segments (if applicable) [#frames]
 config.segmenter.options.pauseLength = 60;			// Length of the pause after a gesture has been detected (if applicable) [#frames]
 config.segmenter.options.xBound = 120;				// 1/2 width of the zone (if applicable) [mm]
 config.segmenter.options.zBound = 60;				// 1/2 depth of the zone (if applicable) [mm]
 
 // Gesture Recognizer
-config.recognizer.module = HybridP3DollarPlusXRecognizer;
+config.recognizer.module = JackknifeRecognizer;
 config.recognizer.options.samplingPoints = 16;		// Number of sampling points [#points]
 
 module.exports = config;
