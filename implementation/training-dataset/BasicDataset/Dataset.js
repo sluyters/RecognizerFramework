@@ -16,8 +16,8 @@ function loadDataset() {
                 let strokeData = JSON.parse(fs.readFileSync(rawGesturePath));
                 gesture = gesture.split(".")[0].split("-");
                 let gestureName = gesture[0].split("#")[0];
-                if(gestureSet.getGestureClass().has(gestureName)){
-                    gestureSet.getGestureClass().get(gestureName).addSample(strokeData);
+                if(gestureSet.getGestureClasses().has(gestureName)){
+                    gestureSet.getGestureClasses().get(gestureName).addSample(strokeData);
                 }
                 else{
                     let gestureClass = new GestureClass(gestureName, gestureIndex);

@@ -10,7 +10,7 @@ class Recognizer extends AbstractRecognizer {
         this.N = options.samplingPoints;
         this.recognizer = null;
         if (dataset !== undefined) {
-            dataset.getGestureClass().forEach((gesture) => {
+            dataset.getGestureClasses().forEach((gesture) => {
                 gesture.getSample().forEach((sample) => {
                         this.addGesture(gesture.name, sample);
                     }

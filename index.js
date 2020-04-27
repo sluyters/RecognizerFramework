@@ -9,22 +9,54 @@ const Dataset = config.dataset.module;
 const GestureSegmenter = config.segmenter.module;
 
 // Initialize the sensor interface, recognizer and segmenter
+var dataset =  Dataset.loadDataset()
 var sensorIF = new SensorIF(config.sensorIF.options);
-var recognizer = new Recognizer(config.recognizer.options, Dataset.loadDataset());
+if (config.general.loadGesturesFromClient) {
+    // Train the recognizer with the gestures requested by the client
+    var recognizer = new Recognizer(config.recognizer.options);
+} else {
+    // Train the recognizer with the whole dataset
+    var recognizer = new Recognizer(config.recognizer.options, dataset);
+}
 var gestureSegmenter = new GestureSegmenter(config.segmenter.options);
 
 // Start the websocket server
 var wsServer = getWebSocketServer(config.server.ip, config.server.port);
 wsServer.on('connection', async function connection(ws) {
-    // Wait 100ms
-    await new Promise(resolve => setTimeout(resolve, 100));
-    console.log("Connected!");
-    
+    let requestedGestures = [];
+
     // Set callback
-    ws.on('message', function incoming(message) {
-        var data = JSON.parse(message.utf8Data);
-        if (data.hasOwnProperty('context')) {
-            // TODO
+    ws.on('message', function(message) {
+        var data = JSON.parse(message);
+        if (data.hasOwnProperty('addGesture')) {
+            // A new gesture needs to be recognized
+            let gestureName = data.addGesture;
+            if (!requestedGestures.includes(gestureName)) {
+                // The gesture has not already been requested
+                if (config.general.loadGesturesFromClient) {
+                    // The gesture has to be added to the recognizer
+                    let gestureClass = dataset.getGestureClass(gestureName);
+                    if (gestureClass) {
+                        for (template of gestureClass.getSample()) {
+                            console.log(gestureName)
+                            recognizer.addGesture(gestureName, template);
+                        }
+                    }
+                }
+                requestedGestures.push(gestureName);
+            }
+        } else if (data.hasOwnProperty('removeGesture')) {
+            // A gesture does not need to be recognized anymore
+            let gestureName = data.addGesture;
+            var index = requestedGestures.indexOf(gestureName);
+            if (index > -1) {
+                // The gesture previously had to be recognized
+                requestedGestures.splice(index, 1);
+                if (config.general.loadGesturesFromClient) {
+                    // The gesture has to be removed from the recognizer (if supported by the recognizer)
+                    // TODO recognizer.removeGesture(gestureName);
+                }
+            }
         }
     });
 
@@ -63,7 +95,7 @@ wsServer.on('connection', async function connection(ws) {
         if (success) {
             // Gesture recognition
             var { success, name, time } = recognizer.recognize(segment);
-            if (success) {
+            if (success && requestedGestures.includes(name)) {
                 console.log(name);
                 gestureSegmenter.notifyRecognition();
                 ws.send(JSON.stringify({ 'gesture': name }));
@@ -72,6 +104,7 @@ wsServer.on('connection', async function connection(ws) {
     });
 
     ws.on('close', function() {
+        console.log("Disconnected!")
         sensorIF.stop();
     });
 

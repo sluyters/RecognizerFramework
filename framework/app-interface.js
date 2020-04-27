@@ -64,6 +64,7 @@ class GestureHandler {
      * @param {gestureCallback} callback - The callback that handles the gesture.
      */
     onGesture(gesture, callback) {
+        this.client.send({ 'gestureRequest': gesture })
         this.handlers[gesture] = callback;
     }
 

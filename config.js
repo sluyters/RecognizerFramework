@@ -22,6 +22,7 @@ const UVPRecognizer = require('./implementation/gesture-recognizer/UVPRecognizer
 // CONFIG INIT ------------------------------------------------------------------------------------
 var config = {};
 
+config.general = {};
 config.server = {};
 config.sensorIF = {};
 config.sensorIF.options = {};
@@ -32,6 +33,9 @@ config.recognizer = {};
 config.recognizer.options = {};
 
 // CONFIGURATION ----------------------------------------------------------------------------------
+// General Configuration
+config.general.loadGesturesFromClient = false;       // Load gestures based on requests from the client
+
 // Server
 config.server.ip = '127.0.0.1';						// IP of the server (for app interface)
 config.server.port = 6442;							// Port of the server (for app interface)
@@ -41,14 +45,14 @@ config.sensorIF.module = LeapIF;
 config.sensorIF.options.framerate = 60;				// Sensor framerate [seconds]
 
 // Gesture Dataset
-config.dataset.module = BasicDataset;
+config.dataset.module = GuinevereUnifiedDataset;
 
 // Gesture Segmenter
 config.segmenter.module = WindowSegmenter;
 config.segmenter.options.minSegmentLength = 10;		// Minimum length of a segment (if applicable) [#frames]
 config.segmenter.options.maxSegmentLength = 60;		// Maximum length of a segment (if applicable) [#frames]
-config.segmenter.options.windowWidth = 30;			// Width of the window (if applicable) [#frames]
-config.segmenter.options.intervalLength = 12;		// Length of the interval between 2 consecutive segments (if applicable) [#frames]
+config.segmenter.options.windowWidth = 20;			// Width of the window (if applicable) [#frames]
+config.segmenter.options.intervalLength = 3;		// Length of the interval between 2 consecutive segments (if applicable) [#frames]
 config.segmenter.options.pauseLength = 60;			// Length of the pause after a gesture has been detected (if applicable) [#frames]
 config.segmenter.options.xBound = 120;				// 1/2 width of the zone (if applicable) [mm]
 config.segmenter.options.zBound = 60;				// 1/2 depth of the zone (if applicable) [mm]

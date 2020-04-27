@@ -6,16 +6,20 @@ class GestureSet {
         this.G =0;
     }
 
-    addGestureClass(gestureClass){
-        this.gestures.set(gestureClass.name,gestureClass);
+    addGestureClass(gestureClass) {
+        this.gestures.set(gestureClass.name, gestureClass);
         this.G +=1;
     }
 
-    getGestureClass(){
+    getGestureClasses() {
         return this.gestures;
     }
 
-    getMinTemplate(){
+    getGestureClass(name) {
+        return this.gestures.get(name);
+    }
+
+    getMinTemplate() {
         let TperG = Infinity;
 
         for (var gestureClass of this.gestures.values()) {
