@@ -45,7 +45,7 @@ config.sensorIF.module = LeapIF;
 config.sensorIF.options.framerate = 60;				// Sensor framerate [seconds]
 
 // Gesture Dataset
-config.dataset.module = GuinevereUnifiedDataset;
+config.dataset.module = BasicDataset;
 
 // Gesture Segmenter
 config.segmenter.module = WindowSegmenter;

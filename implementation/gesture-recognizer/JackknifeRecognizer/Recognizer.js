@@ -57,7 +57,7 @@ function convert(sample, name) {
 
     // check min distance START
     let maxMovement = 0;
-    let threshold = 50;
+    let threshold = 40;
     let initPoints = {};
     for (const articulation of Object.keys(sample.strokes[0].paths)) {
         initPoints[articulation] = sample.strokes[0].paths[articulation].points[0];
