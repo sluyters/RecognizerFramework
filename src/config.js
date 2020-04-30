@@ -3,21 +3,21 @@
 const LeapIF = require('./implementation/sensor-interface/leap-interface').SensorIF;
 
 // Gesture Datasets
-const GuinevereUnifiedDataset = require('./implementation/training-dataset/GuinevereUnified/Dataset');
-const BasicDataset = require('./implementation/training-dataset/BasicDataset/Dataset');
+const GuinevereUnifiedDataset = require('./implementation/dataset/guinevere-unified-dataset/dataset');
+const BasicDataset = require('./implementation/dataset/basic-dataset/dataset');
 
 // Gesture Segmenters
-const WindowSegmenter = require('./implementation/gesture-segmenter/window-segmenter').Segmenter
-const ZoningSegmenter = require('./implementation/gesture-segmenter/zoning-segmenter').Segmenter
-const LeftHandSegmenter = require('./implementation/gesture-segmenter/lefthand-segmenter').Segmenter;
-const FrameSegmenter = require('./implementation/gesture-segmenter/frame-segmenter').Segmenter;
+const WindowSegmenter = require('./implementation/segmenter/window-segmenter').Segmenter
+const ZoningSegmenter = require('./implementation/segmenter/zoning-segmenter').Segmenter
+const LeftHandSegmenter = require('./implementation/segmenter/lefthand-segmenter').Segmenter;
+const FrameSegmenter = require('./implementation/segmenter/frame-segmenter').Segmenter;
 
 // Gesture Recognizers
-const ProgrammaticRecognizer = require('./implementation/gesture-recognizer/programmatic-recognizer').Recognizer;
-const P3DollarPlusXRecognizer = require('./implementation/gesture-recognizer/P3DollarPlusXRecognizer').Recognizer;
-const HybridP3DollarPlusXRecognizer = require('./implementation/gesture-recognizer/HybridP3DollarPlusXRecognizer/Recognizer').Recognizer
-const JackknifeRecognizer = require('./implementation/gesture-recognizer/JackknifeRecognizer/Recognizer').Recognizer;
-const UVPRecognizer = require('./implementation/gesture-recognizer/UVPRecognizer/Recognizer').Recognizer;
+const ProgrammaticRecognizer = require('./implementation/recognizer/programmatic-recognizer').Recognizer;
+const P3DollarPlusXRecognizer = require('./implementation/recognizer/p3dollarplusx-recognizer/recognizer').Recognizer;
+const HybridP3DollarPlusXRecognizer = require('./implementation/recognizer/hybrid-p3dollarplusx-recognizer/recognizer').Recognizer
+const JackknifeRecognizer = require('./implementation/recognizer/jackknife-recognizer/recognizer').Recognizer;
+const UVPRecognizer = require('./implementation/recognizer/uvplus-recognizer/recognizer').Recognizer;
 
 // CONFIG INIT ------------------------------------------------------------------------------------
 var config = {};

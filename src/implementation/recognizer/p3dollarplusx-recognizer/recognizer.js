@@ -1,4 +1,4 @@
-const AbstractRecognizer = require('../../framework/recognizer').AbstractRecognizer;
+const AbstractRecognizer = require('../../../framework/recognizer').AbstractRecognizer;
 
 /**
  * The $P+ Point-Cloud Recognizer (JavaScript version)

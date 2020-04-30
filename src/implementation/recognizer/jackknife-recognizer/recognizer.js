@@ -1,8 +1,8 @@
 const AbstractRecognizer = require('../../../framework/recognizer').AbstractRecognizer;
-const jackknife_blades = require('./jackknife').jackknife_blades;
-const Jackknife = require('./jackknife_recognizer').Jackknife;
-const Vector = require('./vector').Vector;
-const Sample = require('./sample').Sample;
+const jackknife_blades = require('./jackknife/jackknife').jackknife_blades;
+const Jackknife = require('./jackknife/jackknife_recognizer').Jackknife;
+const Vector = require('./jackknife/vector').Vector;
+const Sample = require('./jackknife/sample').Sample;
 
 class Recognizer extends AbstractRecognizer {
 

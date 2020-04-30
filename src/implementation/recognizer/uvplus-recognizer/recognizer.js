@@ -1,5 +1,5 @@
 const AbstractRecognizer = require('../../../framework/recognizer').AbstractRecognizer;
-const dollar = require('./dollar');
+const dollar = require('./uvplus/dollar');
 
 class Recognizer extends AbstractRecognizer {
 
