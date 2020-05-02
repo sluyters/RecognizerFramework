@@ -2,6 +2,12 @@
 // Sensor Interfaces
 const LeapIF = require('./implementation/sensor-interface/leap-interface').SensorIF;
 
+// Classifiers
+const GPSDClassifier = require('./implementation/classifier/gpsd-classifier/classifier').Classifier;
+
+// Static Gesture Analyzers
+const BasicStaticAnalyzer = require('./implementation/static-analyzer/basic-analyzer/static-analyzer').StaticAnalyzer;
+
 // Gesture Datasets
 const GuinevereUnifiedDataset = require('./implementation/dataset/guinevere-unified-dataset/dataset');
 const BasicDataset = require('./implementation/dataset/basic-dataset/dataset');
@@ -26,6 +32,10 @@ config.general = {};
 config.server = {};
 config.sensorIF = {};
 config.sensorIF.options = {};
+config.classifier = {};
+config.classifier.options = {};
+config.staticAnalyzer = {};
+config.staticAnalyzer.options = {};
 config.dataset = {};
 config.segmenter = {};
 config.segmenter.options = {};
@@ -43,6 +53,14 @@ config.server.port = 6442;							// Port of the server (for app interface)
 // Sensor Interface
 config.sensorIF.module = LeapIF;
 config.sensorIF.options.framerate = 60;				// Sensor framerate [seconds]
+
+// Classifier
+config.classifier.module = GPSDClassifier;
+//config.classifier.options;
+
+// Static Gesture Analyzer
+config.staticAnalyzer.module = BasicStaticAnalyzer;
+//config.staticAnalyzer.options = 
 
 // Gesture Dataset
 config.dataset.module = BasicDataset;

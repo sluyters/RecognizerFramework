@@ -20,11 +20,19 @@ class GestureHandler {
         this.client.onmessage = function(event) {
             let data = JSON.parse(event.data);
             if (data.hasOwnProperty('gesture')) {
-                if (this.handlers.hasOwnProperty(data.gesture)) {
-                    this.handlers[data.gesture]();
-                    this.forEachHandler(data.gesture);
+                let gestureName = data.gesture.name;
+                if (data.gesture.type === 'dynamic') {
+                    if (this.handlers.hasOwnProperty(gestureName)) {
+                        this.handlers[gestureName]();
+                        this.forEachHandler(gestureName);
+                    }
+                } else {
+                    if (this.handlers.hasOwnProperty(gestureName)) {
+                        this.handlers[gestureName](data.gesture.data);
+                    }
                 }
-            } else if (data.hasOwnProperty('frame')) {
+            } 
+            if (data.hasOwnProperty('frame')) {
                 this.frameHandler(data.frame);
             }
         }.bind(this);
@@ -72,6 +80,18 @@ class GestureHandler {
         if (this.isConnected) {
             this.client.send(JSON.stringify({ 'addGesture': gesture }));
         }
+        this.handlers[gesture] = callback;
+    }
+
+    /**
+     * Execute the callback each time the gesture is detected.
+     * @param {string} gesture - The name of the gesture which should trigger the callback.
+     * @param {gestureCallback} callback - The callback that handles the gesture.
+     */
+    onContinuousGesture(gesture, callback) {
+        // if (this.isConnected) {
+        //     this.client.send(JSON.stringify({ 'addGesture': gesture }));
+        // }
         this.handlers[gesture] = callback;
     }
 

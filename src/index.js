@@ -1,90 +1,58 @@
 const WebSocket = require('ws');
 const http = require('http');
 const config = require('./config');
+const FrameProcessor = require('./framework/frame-processor').FrameProcessor;
 
 // Load the modules
-const Recognizer = config.recognizer.module;
 const SensorIF = config.sensorIF.module;
-const Dataset = config.dataset.module;
-const GestureSegmenter = config.segmenter.module;
 
 // Main function
 function run() {
     // Initialize the sensor interface, dataset, recognizer and segmenter
     var sensorIF = new SensorIF(config.sensorIF.options);
-    var dataset =  Dataset.loadDataset()
-    var recognizer = initRecognizer(config.general.loadGesturesFromClient, dataset, config.recognizer.options);
-    var gestureSegmenter = new GestureSegmenter(config.segmenter.options);
+    var frameProcessor = new FrameProcessor(config);
 
     // Start the websocket server
     var wsServer = getWebSocketServer(config.server.ip, config.server.port);
     wsServer.on('connection', async function connection(ws) {
-        // List of gestures requested by the client
-        let requestedGestures = [];
-
-        // Handle addGesture and removeGesture messages from the client
+        frameProcessor.resetContext();
+        // Handle messages from the client
         ws.on('message', function(message) {
             var data = JSON.parse(message);
-            if (data.hasOwnProperty('addGesture')) {
+            if (data.hasOwnProperty('addPose')) {
+                let poseName = data.addPose;
+                frameProcessor.enablePose(poseName);
+            } else if (data.hasOwnProperty('addGesture')) {
                 let gestureName = data.addGesture;
-                if (!requestedGestures.includes(gestureName)) {
-                    if (config.general.loadGesturesFromClient) {
-                        loadTemplates(gestureName, recognizer, dataset);
-                    }
-                    requestedGestures.push(gestureName);
-                }
+                frameProcessor.enableGesture(gestureName);
+            } else if (data.hasOwnProperty('removePose')) {
+                let poseName = data.removePose;
+                frameProcessor.disablePose(poseName);
             } else if (data.hasOwnProperty('removeGesture')) {
                 let gestureName = data.removeGesture;
-                var index = requestedGestures.indexOf(gestureName);
-                if (index > -1) {
-                    requestedGestures.splice(index, 1);
-                    if (config.general.loadGesturesFromClient) {
-                        // TODO recognizer.removeGesture(gestureName);
-                    }
-                }
+                frameProcessor.disableGesture(gestureName);
             }
         });
 
-        var hadRightHand = false;
         // Process sensor frames
-        sensorIF.loop((parsedFrame, rawFrame) => {
-            // TODO - move to another module
-            // Send right hand fingers to the app 
-            var hasRightHand = false;
-            for (const hand of rawFrame.hands) {
-                if (hand.type === "right") {
-                    hasRightHand = true;
-                    hadRightHand = true;
-                    var fingers = [];
-                    hand.fingers.forEach((pointable) => {
-                        const position = pointable.stabilizedTipPosition;
-                        const normalized = rawFrame.interactionBox.normalizePoint(position);
-                        fingers.push({ 
-                            'type': pointable.type, 
-                            'normalizedPosition': normalized, 
-                            'touchDistance': pointable.touchDistance, 
-                            'tipVelocity': pointable.tipVelocity 
-                        });
-                    });
-                    ws.send(JSON.stringify({ 'frame': { 'fingers': fingers } }))
-                }
-            }
-            // If the hand is not visible anymore, send empty data once
-            if (hadRightHand && !hasRightHand) {
-                hadRightHand = false;
-                ws.send(JSON.stringify({ 'frame': { 'fingers': [] } }))
+        sensorIF.loop((frame, appData) => {
+            let message = {};
+
+            if (appData) {
+                // If there is data to send to the application
+                message.frame = appData;
             }
 
-            // Gesture segmentation
-            var { success, segment } = gestureSegmenter.segment(parsedFrame);
-            if (success) {
-                // Gesture recognition
-                var { success, name, time } = recognizer.recognize(segment);
-                if (success && requestedGestures.includes(name)) {
-                    console.log(name);
-                    gestureSegmenter.notifyRecognition();
-                    ws.send(JSON.stringify({ 'gesture': name }));
-                }
+            // Gesture recognition
+            var ret = frameProcessor.processFrame(frame);
+            if (ret) {
+                // If there gesture data to send to the application
+                message.gesture = ret;
+            }
+
+            if (Object.entries(message).length != 0 && message.constructor === Object) {
+                // If the message is not empty, send it to the application
+                ws.send(JSON.stringify(message));
             }
         });
 
@@ -110,25 +78,6 @@ function getWebSocketServer(ip, port) {
     var wsServer = new WebSocket.Server({ server });
 
     return wsServer;
-}
-
-function initRecognizer(loadDataset, dataset, options) {
-    if (loadDataset) {
-        // Train the recognizer with the gestures requested by the client
-        return new Recognizer(options);
-    } else {
-        // Train the recognizer with the whole dataset
-        return new Recognizer(options, dataset);
-    }
-}
-
-function loadTemplates(gestureName, recognizer, dataset) {
-    let gestureClass = dataset.getGestureClass(gestureName);
-    if (gestureClass) {
-        for (template of gestureClass.getSample()) {
-            recognizer.addGesture(gestureName, template);
-        }
-    }
 }
 
 if (require.main === module) {
