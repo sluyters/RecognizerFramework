@@ -3,18 +3,25 @@ import { w3cwebsocket as W3CWebSocket } from "websocket";
 class GestureHandler {
     
     constructor() {
-        this.handlers = {};
+        // Save callbacks for gestures, poses, and frames
+        this.gestureHandlers = {};
+        this.poseHandlers = {};
         this.forEachHandler = (gesture) => {};
         this.frameHandler = (frame) => {};
+        // True if the interface is connected to the server
         this.isConnected = false;
-
         // Connect to the gesture recognizer.
         this.client = new W3CWebSocket('ws://127.0.0.1:6442');
         this.client.onopen = function() {
             console.log('WebSocket Client Connected');
             this.isConnected = true;
-            for (const gesture of Object.keys(this.handlers)) {
+            // Register gestures to the server
+            for (const gesture of Object.keys(this.gestureHandlers)) {
                 this.client.send(JSON.stringify({ 'addGesture': gesture }));
+            }
+            // Register poses to the server
+            for (const pose of Object.keys(this.poseHandlers)) {
+                this.client.send(JSON.stringify({ 'addPose': pose }));
             }
         }.bind(this);
         this.client.onmessage = function(event) {
@@ -22,13 +29,15 @@ class GestureHandler {
             if (data.hasOwnProperty('gesture')) {
                 let gestureName = data.gesture.name;
                 if (data.gesture.type === 'dynamic') {
-                    if (this.handlers.hasOwnProperty(gestureName)) {
-                        this.handlers[gestureName]();
+                    // Dynamic gesture
+                    if (this.gestureHandlers.hasOwnProperty(gestureName)) {
+                        this.gestureHandlers[gestureName]();
                         this.forEachHandler(gestureName);
                     }
                 } else {
-                    if (this.handlers.hasOwnProperty(gestureName)) {
-                        this.handlers[gestureName](data.gesture.data);
+                    // Pose
+                    if (this.poseHandlers.hasOwnProperty(gestureName)) {
+                        this.poseHandlers[gestureName](data.gesture.data);
                     }
                 }
             } 
@@ -80,19 +89,19 @@ class GestureHandler {
         if (this.isConnected) {
             this.client.send(JSON.stringify({ 'addGesture': gesture }));
         }
-        this.handlers[gesture] = callback;
+        this.gestureHandlers[gesture] = callback;
     }
 
     /**
-     * Execute the callback each time the gesture is detected.
-     * @param {string} gesture - The name of the gesture which should trigger the callback.
-     * @param {gestureCallback} callback - The callback that handles the gesture.
+     * Execute the callback each time the pose is detected.
+     * @param {string} pose - The name of the pose which should trigger the callback.
+     * @param {poseCallback} callback - The callback that handles the pose.
      */
-    onContinuousGesture(gesture, callback) {
-        // if (this.isConnected) {
-        //     this.client.send(JSON.stringify({ 'addGesture': gesture }));
-        // }
-        this.handlers[gesture] = callback;
+    onPose(pose, callback) {
+        if (this.isConnected) {
+            this.client.send(JSON.stringify({ 'addPose': pose }));
+        }
+        this.poseHandlers[pose] = callback;
     }
 
     /**
@@ -100,10 +109,23 @@ class GestureHandler {
      * @param {string} gesture - The name of the gesture for which the callback should be removed.
      */
     removeGestureHandler(gesture) {
-        if (this.handlers.hasOwnProperty(gesture)) {
-            delete this.handlers[gesture];
+        if (this.gestureHandlers.hasOwnProperty(gesture)) {
+            delete this.gestureHandlers[gesture];
             if (this.isConnected) {
                 this.client.send(JSON.stringify({ 'removeGesture': gesture }));
+            }
+        }
+    }
+
+    /**
+     * Remove the callback associated to the pose.
+     * @param {string} pose - The name of the pose for which the callback should be removed.
+     */
+    removePoseHandler(pose) {
+        if (this.poseHandlers.hasOwnProperty(pose)) {
+            delete this.poseHandlers[pose];
+            if (this.isConnected) {
+                this.client.send(JSON.stringify({ 'removePose': pose }));
             }
         }
     }
