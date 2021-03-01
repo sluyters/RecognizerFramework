@@ -11,7 +11,7 @@
   "license": "ISC",
   "dependencies": {
     "ws": "7.2.3",
-    "three": "^0.113.2",
+    "three": "^0.125.0",
     "leapjs": "0.6.4"
   }
 }
